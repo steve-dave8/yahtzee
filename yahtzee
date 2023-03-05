@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+declare -a rolls
+declare -A numCount
+
+# Get 5 random numbers from 1 to 6:
+for i in {1..5}; do
+    num=$(( 1 + $RANDOM % 6 ))
+    rolls+=($num)
+    if [ -v "numCount[$num]" ]; then
+        ((numCount[$num]++))
+    else
+        numCount[$num]=1
+    fi
+done
+
+echo ${rolls[@]}
+
+declare -a matching
+for i in ${numCount[@]}; do
+    matching+=($i)
+done
+
+IFS=$'\n'
+matching=($(sort -nr <<<"${matching[*]}"))
+unset IFS
+maxCombo=$(echo ${matching[0]})
+
+case $maxCombo in
+    5) echo "Yahtzee!";;
+    4) echo "Four of a Kind";;
+    3)  
+        if [ ${#matching[*]} == 2 ]; then
+            echo "Full House"
+        else
+            echo "Three of a Kind"
+        fi;;
+    *)
+        IFS=$'\n'
+        sortedRoll=($(sort -n <<<"${rolls[*]}"))
+        unset IFS
+        for i in ${sortedRoll[@]}; do
+            strVal+="$i"
+        done
+        if [[ $strVal =~ 12345|23456 ]]; then
+            echo "Large Straight"
+        elif [[ $strVal =~ 1234|2345|3456 ]]; then
+            echo "Small Straight"
+        fi
+esac
